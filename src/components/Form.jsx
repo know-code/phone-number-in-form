@@ -1,5 +1,5 @@
 import { Controller, useForm } from "react-hook-form";
-import { isValidPhoneNumber } from "react-phone-number-input";
+import { isValidPhoneNumber } from "react-phone-number-input/mobile";
 import Input from "react-phone-number-input/input";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -19,7 +19,8 @@ const validationSchema = Yup.object().shape({
 
 const defaultValues = {
   country: "",
-  destinationAmount: "",
+  destinationAccount: "",
+  amount: "",
 };
 
 const Form = () => {
@@ -29,6 +30,7 @@ const Form = () => {
     handleSubmit,
     formState: { errors },
     getValues,
+    setValue,
   } = useForm({
     resolver: yupResolver(validationSchema),
     defaultValues,
@@ -40,6 +42,7 @@ const Form = () => {
     );
     console.log(data);
   };
+
   return (
     <div className="card p-4 mx-auto">
       <div className="mb-3">
@@ -52,20 +55,35 @@ const Form = () => {
           <label htmlFor="country" className="form-label">
             Country
           </label>
-          <select
-            {...register("country", { required: true })}
-            className={`form-control ${
-              errors?.country?.message ? "is-invalid" : ""
-            }`}
-            aria-label="Country select"
-          >
-            <option value="">Select Country</option>
-            {countries.map((country) => (
-              <option key={country.code} value={country.code}>
-                {country.name}
-              </option>
-            ))}
-          </select>
+          <Controller
+            control={control}
+            name="country"
+            render={({ field: { onChange, ...fields } }) => {
+              return (
+                <select
+                  {...fields}
+                  onChange={(e) => {
+                    setValue("destinationAccount", "", {
+                      shouldValidate: errors?.destinationAccount?.message,
+                    });
+                    return onChange(e);
+                  }}
+                  className={`form-control ${
+                    errors?.country?.message ? "is-invalid" : ""
+                  }`}
+                  aria-label="Country select"
+                >
+                  <option value="">Select Country</option>
+                  {countries.map((country) => (
+                    <option key={country.code} value={country.code}>
+                      {country.name}
+                    </option>
+                  ))}
+                </select>
+              );
+            }}
+          />
+
           <div className="invalid-feedback">{errors?.country?.message}</div>
         </div>
         <div className="mb-3">
@@ -82,7 +100,7 @@ const Form = () => {
             render={({ field: { onChange } }) => (
               <Input
                 control={control}
-                country={getValues()?.country}
+                country={getValues().country}
                 placeholder=""
                 className={`form-control ${
                   errors?.destinationAccount?.message ? "is-invalid" : ""
